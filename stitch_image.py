@@ -50,7 +50,13 @@ def stitch_image(image1, image2, dimension=2, pad=0):
     if image2.GetImageDimension() != Dimension:
         print("Image1 dimension (" + str(Dimension) + ") and Image2 dimension (" + str(image2.GetImageDimension()) + ") are different")
         sys.exit(1)
-    
+
+    #Check negative spacing or non identity direction
+    if not (itk.array_from_matrix(image1.GetDirection()) == np.eye(Dimension)).all():
+        image1 = gt.applyTransformation(image1, None, None, None, force_resample=True, pad=pad)
+    if not (itk.array_from_matrix(image2.GetDirection()) == np.eye(Dimension)).all():
+        image2 = gt.applyTransformation(image2, None, None, None, force_resample=True, pad=pad)
+
     #Determine the FOV1image and FOV2image
     if image1.GetOrigin()[dimension] > image2.GetOrigin()[dimension]:
         FOV1image = image2
