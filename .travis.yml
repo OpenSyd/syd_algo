@@ -17,6 +17,7 @@ install:
 script: 
   - python -m unittest stitch_image -v
   - python -m unittest radioactiveDecay -v
+  - python -m unittest anonymize -v
 
 notifications:
   email: false
