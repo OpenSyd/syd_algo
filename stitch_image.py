@@ -53,9 +53,9 @@ def stitch_image(image1, image2, dimension=2, pad=0):
 
     #Check negative spacing or non identity direction
     if not (itk.array_from_matrix(image1.GetDirection()) == np.eye(Dimension)).all():
-        image1 = gt.applyTransformation(image1, None, None, None, force_resample=True, pad=pad)
+        image1 = gt.applyTransformation(input=image1, force_resample=True, pad=pad)
     if not (itk.array_from_matrix(image2.GetDirection()) == np.eye(Dimension)).all():
-        image2 = gt.applyTransformation(image2, None, None, None, force_resample=True, pad=pad)
+        image2 = gt.applyTransformation(input=image2, force_resample=True, pad=pad)
 
     #Determine the FOV1image and FOV2image
     if image1.GetOrigin()[dimension] > image2.GetOrigin()[dimension]:
@@ -87,7 +87,7 @@ def stitch_image(image1, image2, dimension=2, pad=0):
     newFOV2Size[dimension] = highFOV2index[dimension] - lowFOV2index[dimension] +1
 
     #Resample FOV2image to be aligned with FOV1image
-    resampledFOV2image = gt.applyTransformation(FOV2image, None, FOV1image, None, newsize=newFOV2Size, neworigin=newFOV2Origin, force_resample=True, pad=pad)
+    resampledFOV2image = gt.applyTransformation(input=FOV2image, spacinglike=FOV1image, newsize=newFOV2Size, neworigin=newFOV2Origin, force_resample=True, pad=pad)
 
     #Determine size of the output
     outputLastIndex = itk.Index[Dimension]()
