@@ -12,7 +12,11 @@ python:
 before_install:
   - git lfs pull
 install:
-  - pip install gatetools
+  - mkdir gatetools
+  - git clone https://github.com/OpenGATE/GateTools.git gatetools
+  - cd gatetools 
+  - pip install -e .
+  - cd ..
   - pip freeze
 script: 
   - python -m unittest stitch_image -v
