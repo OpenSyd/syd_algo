@@ -36,6 +36,8 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
     ds[(0x10, 0x10)].value = str.encode(patientname)
   if (0x10, 0x20) in ds:  # If Patient ID is present
     ds[(0x10, 0x20)].value = str.encode(patientid)
+  if (0x10, 0x21) in ds:  # If Issuer of Patient ID is present
+    ds[(0x10, 0x21)].value = b"anonymous"
   if (0x10, 0x30) in ds:  # If Patient's Birth Date is present
     ds[(0x10, 0x30)].value = b"000000"
   if (0x10, 0x40) in ds:  # If Patient's Sex is present
@@ -44,6 +46,8 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
     ds[(0x10, 0x1000)].value = b"000000"
   if (0x10, 0x1001) in ds:  # If Other Patient Names is present
     ds[(0x10, 0x1001)].value = b"000000"
+  if (0x10, 0x1040) in ds:  # If Patient's Address is present
+    ds[(0x10, 0x1040)].value = b"anonymous"
   if (0x10, 0x2160) in ds:  # If Ethnic Group is present
     ds[(0x10, 0x2160)].value = b"000000"
   if (0x10, 0x2180) in ds:  # If Occupation is present
@@ -86,10 +90,12 @@ def anonymizeDicom_click(inputfolder, force, patientname, patientid):
       (0x9, 0x1043) Patient Creation Time\n
       (0x10, 0x10) PatientName\n
       (0x10, 0x20) Patient ID\n
+      (0x10, 0x21) Issuer of Patient ID\n
       (0x10, 0x30) Patient's Birth Date\n
       (0x10, 0x40) Patient's Sex\n
       (0x10, 0x1000) Other Patient IDs\n
       (0x10, 0x1001) Other Patient Names\n
+      (0x10, 0x1040) Patient's Address\n
       (0x10, 0x2160) Ethnic Group\n
       (0x10, 0x2180) Occupation\n
       (0x18, 0x1030) Protocol Name\n
