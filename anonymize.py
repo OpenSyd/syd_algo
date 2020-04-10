@@ -58,6 +58,10 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
     ds[(0x20, 0x10)].value = b"000000"
   if (0x32, 0x1032) in ds: # If Requesting Physician is present
     ds[(0x32, 0x1032)].value = b"000000"
+  if (0xe1, 0x1061) in ds:  # If Protocol File Name is present
+    ds[(0xe1, 0x1061)].value = b"anonymous"
+  if (0xe1, 0x1063) in ds:  # If Patient Language is present
+    ds[(0xe1, 0x1063)].value = b"anonymous"
   ds.save_as(outputFile)
 
 
@@ -101,6 +105,8 @@ def anonymizeDicom_click(inputfolder, force, patientname, patientid):
       (0x18, 0x1030) Protocol Name\n
       (0x20, 0x10) Study Id\n
       (0x32, 0x1032) Requesting Physician\n
+      (0xe1, 0x1061) Protocol File Name\n
+      (0xe1, 0x1063) Patient Language\n
     """
 
     anonymizeDicom(inputfolder, force, patientname, patientid)
