@@ -22,6 +22,7 @@ script:
   - python -m unittest stitch_image -v
   - python -m unittest radioactiveDecay -v
   - python -m unittest anonymize -v
+  - python -m unittest image_projection.py -v
 
   - python -m unittest faf_create_planar_geometrical_mean.py -v
 
