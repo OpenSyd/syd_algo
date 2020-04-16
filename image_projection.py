@@ -36,7 +36,7 @@ def image_projection_click(input, axis, mean, output):
     itk.imwrite(outputImage, output)
 
 # -----------------------------------------------------------------------------
-def image_projection(image, axis, mean):
+def image_projection(image, axis=0, mean=False):
     
     array = (itk.array_from_image(image)).astype(float)
     if image.GetImageDimension() == 3:
@@ -94,7 +94,7 @@ class Test_Image_Projection(unittest.TestCase):
         self.assertTrue(output.GetOrigin()[1] == -0.7)
         self.assertTrue(output.GetLargestPossibleRegion().GetSize()[0] == 15)
         self.assertTrue(output.GetLargestPossibleRegion().GetSize()[1] == 21)
-        output=image_projection(image, 2, False)
+        output=image_projection(image, 2)
         outputArray = itk.array_view_from_image(output)
         self.assertTrue(outputArray[6, 10] == 6*21)
         self.assertTrue(output.GetSpacing()[0] == 1.1)
