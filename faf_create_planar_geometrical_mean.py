@@ -41,6 +41,9 @@ def faf_create_planar_geometrical_mean_click(input, output):
 # -----------------------------------------------------------------------------
 def faf_create_planar_geometrical_mean(image):
 
+    if image.GetImageDimension() != 3:
+        print("Image dimension (" + str(image.image.GetImageDimension()) + ") is not 3")
+        sys.exit(1)
     if image.GetLargestPossibleRegion().GetSize()[2] != 4:
         print("Image size (" + str(image.GetLargestPossibleRegion().GetSize()[2]) + ") is not 4")
         sys.exit(1)
@@ -55,10 +58,12 @@ def faf_create_planar_geometrical_mean(image):
     
     outputArray = np.sqrt(arrayAnt*arrayPost)
     outputImage = itk.image_from_array(outputArray)
-    outputImage.GetSpacing()[0] = image.GetSpacing()[0]
-    outputImage.GetSpacing()[1] = image.GetSpacing()[1]
-    outputImage.GetOrigin()[0] = image.GetOrigin()[0]
-    outputImage.GetOrigin()[1] = image.GetOrigin()[1]
+    spacing =  np.array(image.GetSpacing())
+    spacing = np.delete(spacing, 2)
+    outputImage.SetSpacing(spacing)
+    origin =  np.array(image.GetOrigin())
+    origin = np.delete(origin, 2)
+    outputImage.SetOrigin(origin)
     return outputImage
 
 # -----------------------------------------------------------------------------
