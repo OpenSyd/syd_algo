@@ -27,6 +27,7 @@ script:
   - python -m unittest faf_create_planar_geometrical_mean.py -v
 #  - python -m unittest faf_register_planar_image.py -v
   - python -m unittest faf_ACF_image.py -v
+  - python -m unittest faf_ACGM_image.py -v
 
 notifications:
   email: false
