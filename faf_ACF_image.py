@@ -29,9 +29,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
 @click.option('--ct', '-ct', help='Input CT filename', required=True,
                 type=click.Path(dir_okay=False))
-@click.option('--c', '-c', help='Attenuation Coefficient for Water and Bone for CT energy', default="")
-@click.option('--s', '-s', help='Attenuation Coefficient for Air, Water and Bone for SPECT energies', default="")
-@click.option('--weight', '-w', help='Weights for all emitted peak for the SPECT', default="")
+@click.option('--c', '-c', help='Attenuation Coefficient for Water and Bone for CT energy')
+@click.option('--s', '-s', help='Attenuation Coefficient for Air, Water and Bone for SPECT energies')
+@click.option('--weight', '-w', help='Weights for all emitted peak for the SPECT')
 @click.option('--output', '-o', help='Output filename', required=True,
                 type=click.Path(dir_okay=False,
                               writable=True, readable=False,
@@ -91,7 +91,7 @@ def faf_ACF_image_click(ct, c, s, weight, output):
 def faf_ACF_image(image, ctCoeff, spectCoeff, weight=None):
 
     if image.GetImageDimension() != 3:
-        print("Image dimension (" + str(image.image.GetImageDimension()) + ") is not 3")
+        print("Image dimension (" + str(image.GetImageDimension()) + ") is not 3")
         sys.exit(1)
     if ctCoeff is None:
         print("ctCoeff is mandatory")
@@ -111,10 +111,11 @@ def faf_ACF_image(image, ctCoeff, spectCoeff, weight=None):
 
     ctArray = itk.array_from_image(image)
     ctPositiveValueIndex = np.where(ctArray > 0)
+    ctNegativeValueIndex = np.where(ctArray < 0)
     attenuation = np.zeros(ctArray.shape)
     for i in range(nbPeak):
         attenuationTemp = np.zeros(ctArray.shape)
-        attenuationTemp[not ctPositiveValueIndex] = spectCoeff[3*i+1] + (spectCoeff[3*i+1] - spectCoeff[3*i])/1000.0 *ctArray[not ctPositiveValueIndex]
+        attenuationTemp[ctNegativeValueIndex] = spectCoeff[3*i+1] + (spectCoeff[3*i+1] - spectCoeff[3*i])/1000.0 *ctArray[ctNegativeValueIndex]
         attenuationTemp[ctPositiveValueIndex] = spectCoeff[3*i+1] + ctCoeff[0]/(ctCoeff[1]-ctCoeff[0])*(spectCoeff[3*i+2] - spectCoeff[3*i+1])/1000.0 *ctArray[ctPositiveValueIndex]
         attenuation = attenuation + weight[i]*attenuationTemp
     attenuation[attenuation < 0] = 0
@@ -155,5 +156,5 @@ class Test_Faf_ACF_Image_(unittest.TestCase):
         with open(os.path.join(tmpdirpath, "testACF.mha"),"rb") as fnew:
             bytesNew = fnew.read()
             new_hash = hashlib.sha256(bytesNew).hexdigest()
-            self.assertTrue("8aa9fd8ec301dd7dd9b649867ac405666cd98f44bb938cab04996618e5b74fd6" == new_hash)
+            self.assertTrue("d08585554f67f88ae2ea22f82533fda30094c5968f616747aa1d8806e17739f7" == new_hash)
         shutil.rmtree(tmpdirpath)
