@@ -127,8 +127,10 @@ def faf_ACF_image(image, ctCoeff, spectCoeff, weight=None):
     acfArray = np.exp(image.GetSpacing()[projectionAxis]/(2.0*10.0)*itk.array_from_image(projection))
     acfImage = itk.image_from_array(acfArray)
     acfImage.CopyInformation(projection)
-    flipMatrix = itk.matrix_from_array(np.array([[1, 0, 0], [0, -1, 0], [0, 0, 1]]).astype(float))
-    acfImage = gt.applyTransformation(input=acfImage, matrix=flipMatrix, force_resample=True)
+    flipFilter = itk.FlipImageFilter.New(Input=acfImage)
+    flipFilter.SetFlipAxes((False, True))
+    flipFilter.Update()
+    acfImage = flipFilter.GetOutput()
 
     return acfImage
 
@@ -156,5 +158,5 @@ class Test_Faf_ACF_Image_(unittest.TestCase):
         with open(os.path.join(tmpdirpath, "testACF.mha"),"rb") as fnew:
             bytesNew = fnew.read()
             new_hash = hashlib.sha256(bytesNew).hexdigest()
-            self.assertTrue("d08585554f67f88ae2ea22f82533fda30094c5968f616747aa1d8806e17739f7" == new_hash)
+            self.assertTrue("ba5a3f2e892fcd8eb95d5d2dc4034a2bbcac907b6da84ad78545801c38940d0f" == new_hash)
         shutil.rmtree(tmpdirpath)

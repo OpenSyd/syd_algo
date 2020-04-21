@@ -48,8 +48,10 @@ def faf_register_planar_image(planar, spect):
         sys.exit(1)
 
     projectedSpect = image_projection.image_projection(spect, 1)
-    flipMatrix = itk.matrix_from_array(np.array([[1, 0, 0], [0, -1, 0], [0, 0, 1]]).astype(float))
-    projectedSpect = gt.applyTransformation(input=projectedSpect, matrix=flipMatrix, force_resample=True)
+    flipFilter = itk.FlipImageFilter.New(Input=projectedSPECT)
+    flipFilter.SetFlipAxes((False, True))
+    flipFilter.Update()
+    projectedSPECT = flipFilter.GetOutput()
     projectedSpect = gt.applyTransformation(input=projectedSpect, spacinglike=planar, force_resample=True, adaptive=True)
 
     minCorrelation = 10
