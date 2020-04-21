@@ -154,9 +154,6 @@ class Test_Faf_ACF_Image_(unittest.TestCase):
         ct = itk.imread(os.path.join(tmpdirpath, filenameMhd))
 
         output=faf_ACF_image(ct, [0.2068007, 0.57384408], [0.00014657, 0.13597229, 0.24070651])
-        itk.imwrite(output, os.path.join(tmpdirpath, "testACF.mha"))
-        with open(os.path.join(tmpdirpath, "testACF.mha"),"rb") as fnew:
-            bytesNew = fnew.read()
-            new_hash = hashlib.sha256(bytesNew).hexdigest()
-            self.assertTrue("ba5a3f2e892fcd8eb95d5d2dc4034a2bbcac907b6da84ad78545801c38940d0f" == new_hash)
+        outputArray = itk.array_from_image(output)
+        self.assertTrue(np.allclose(outputArray[208, 189], 6.02242))
         shutil.rmtree(tmpdirpath)
