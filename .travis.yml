@@ -28,6 +28,7 @@ script:
 #  - python -m unittest faf_register_planar_image.py -v
   - python -m unittest faf_ACF_image.py -v
   - python -m unittest faf_ACGM_image.py -v
+  - python -m unittest faf_calibration.py -v
 
 notifications:
   email: false
