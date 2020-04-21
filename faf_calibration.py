@@ -36,14 +36,14 @@ def faf_calibration_click(spect, acgm, injected_activity, half_life, delta_time,
     - <spect_image> is the input 3D attenuation corrected, scatter corrected, reconstruction recovery SPECT, in counts\n
     - <ACGM_image>  is the registered attenuation corrected geometrical mean Image (usually the output of sydFAF_ACGM_Image)\n
 
-    The output is a calibrated 3D SPECT in MBq/mm3. Calibration FAF factor is printed.
+    The output is a calibrated 3D SPECT in MBq. Calibration sensitivity FAF factor is printed. For more value about FAF, use verbose flag.
     
     '''
 
     spectImage = itk.imread(spect)
     acgmImage = itk.imread(acgm)
     outputImage, fafFactor = faf_calibration(spectImage, acgmImage, injected_activity, half_life, delta_time, acquisition_duration)
-    print("Calibration FAF factor (MBq/count): " + str(fafFactor))
+    print("Calibration sensitivity FAF factor (MBq/count): " + str(fafFactor))
     itk.imwrite(outputImage, output)
 
 # -----------------------------------------------------------------------------
