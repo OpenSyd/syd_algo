@@ -38,7 +38,7 @@ def faf_lutetium_calibration_click(spect, ct, planar, injected_activity, delta_t
     - <ct_image>  is the CT Image\n
     - <planar_image>  is the Whole Body Planar Image. For Lutetium, there is 8 slices for 113keV and 208keV windows in that order: 113_ANT_primary, 113_POST_primary, 208_ANT_primary, 208_POST_primary, 113_ANT_scatter, 113_POST_scatter, 208_ANT_scatter, 208_POST_scatter\n
 
-    The output is a calibrated 3D SPECT in MBq. Calibration sensitivity FAF factor is printed.
+    The output is a calibrated 3D SPECT in MBq. Calibration factor with FAF method is printed.
     
     '''
 
@@ -79,7 +79,7 @@ def faf_lutetium_calibration(spect, ct, planar, injected_activity, delta_time):
     acfImage = faf_ACF_image.faf_ACF_image(ct, [0.2068007, 0.57384408],  [0.00014657, 0.13597229, 0.24070651])
     acgmImage = faf_ACGM_image.faf_ACGM_image(registeredGmImage, acfImage)
     calibratedSpectImage, fafFactor = faf_calibration.faf_calibration(spect, acgmImage, injected_activity, 6.647*24,delta_time, 900, True)
-    print("Calibration sensitivity FAF factor (MBq/count): " + str(fafFactor))
+    print("Calibration factor with FAF (Bq/count): " + str(fafFactor))
     return calibratedSpectImage
 
 # -----------------------------------------------------------------------------

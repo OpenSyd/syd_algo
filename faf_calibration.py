@@ -36,14 +36,14 @@ def faf_calibration_click(spect, acgm, injected_activity, half_life, delta_time,
     - <spect_image> is the input 3D attenuation corrected, scatter corrected, reconstruction recovery SPECT, in counts\n
     - <ACGM_image>  is the registered attenuation corrected geometrical mean Image (usually the output of sydFAF_ACGM_Image)\n
 
-    The output is a calibrated 3D SPECT in MBq. Calibration sensitivity FAF factor is printed. For more value about FAF, use verbose flag.
+    The output is a calibrated 3D SPECT in MBq. Calibration factor with FAF method is printed. For more value about FAF, use verbose flag.
     
     '''
 
     spectImage = itk.imread(spect)
     acgmImage = itk.imread(acgm)
     outputImage, fafFactor = faf_calibration(spectImage, acgmImage, injected_activity, half_life, delta_time, acquisition_duration)
-    print("Calibration sensitivity FAF factor (MBq/count): " + str(fafFactor))
+    print("Calibration factor with FAF (Bq/count): " + str(fafFactor))
     itk.imwrite(outputImage, output)
 
 # -----------------------------------------------------------------------------
@@ -86,14 +86,16 @@ def faf_calibration(spect, acgm, injected_activity=1.0, half_life=6.0067, delta_
         print("FAF: " + str(partialSumACGM/sumACGM))
         print("A0 at the beginning of the SPECT acquisition (MBq): " + str(A0))
         print("lambda decay (s-1): " + str(lambdaDecay))
+        print("sensitivityFAF (counts/MBq): " + str(sensitivityFAF))
         #print("volume of SPECT (mm3): " + str(volume))
         #print("integral Activity (MBq.s): " + str(integralActivity))
 
-    calibratedSpectArray = spectArray/sensitivityFAF
+    calibrationFactor = 1.0/sensitivityFAF
+    calibratedSpectArray = spectArray*calibrationFactor
     calibratedSpectImage = itk.image_from_array(calibratedSpectArray)
     calibratedSpectImage.CopyInformation(spect)
 
-    return (calibratedSpectImage, sensitivityFAF)
+    return (calibratedSpectImage, calibrationFactor*1000000)
 
 # -----------------------------------------------------------------------------
 if __name__ == '__main__':
