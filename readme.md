@@ -1,5 +1,5 @@
 
-## Helpfull codes for syd and nuclear medecine images
+## Tools and scripts for syd and nuclear image processing
 
 | File                                    | Description                                                        |
 | --------------------------------------- | ------------------------------------------------------------------ |
