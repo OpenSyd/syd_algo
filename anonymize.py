@@ -5,7 +5,10 @@ import sys
 import os
 import click
 import shutil
-from encryptId import *
+try:
+  from encryptId import *
+except:
+  print("No defined encryption key")
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
   ds = pydicom.read_file(inputFile)
