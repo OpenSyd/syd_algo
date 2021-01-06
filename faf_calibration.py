@@ -115,14 +115,12 @@ class Test_Faf_Calibration_(unittest.TestCase):
         gmImage.SetOrigin(np.array([-6.0, -16.0]))
         spectImage = itk.image_from_array(spect)
         spectImage.SetOrigin(np.array([-3.0, -8.0, -8.0]))
-        calibratedSpectImage, sensitivityFAF = faf_calibration(spectImage, gmImage, 1.0, half_life=4, delta_time=4, verbose=True)
+        calibratedSpectImage, calibrationFactor = faf_calibration(spectImage, gmImage, 1.0, half_life=4, delta_time=4, verbose=True)
         calibratedSpectArray = itk.array_from_image(calibratedSpectImage)
 
         self.assertTrue(calibratedSpectImage.GetLargestPossibleRegion().GetSize()[0] == 6)
         self.assertTrue(calibratedSpectImage.GetLargestPossibleRegion().GetSize()[1] == 16)
         self.assertTrue(calibratedSpectImage.GetLargestPossibleRegion().GetSize()[2] == 16)
-        theoreticalSensitivityFaf = 6*16*16*0.33/(0.5*0.25)
-        print(theoreticalSensitivityFaf)
-        print(sensitivityFAF)
-        self.assertTrue(np.allclose(sensitivityFAF, theoreticalSensitivityFaf))
-        self.assertTrue(np.allclose(calibratedSpectArray[4,12], 0.33/theoreticalSensitivityFaf))
+        theoreticalcalibrationFactor = 1/(6*16*16*0.33/(0.5*0.25))*1000000
+        self.assertTrue(np.allclose(calibrationFactor, theoreticalcalibrationFactor))
+        self.assertTrue(np.allclose(calibratedSpectArray[4,12], 0.33*theoreticalcalibrationFactor/1000000))
