@@ -7,7 +7,9 @@ import click
 import shutil
 try:
   from encryptId import *
+  encryptIdDefine = True
 except:
+  encryptIdDefine = False
   print("No defined encryption key")
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
@@ -135,7 +137,7 @@ def anonymizeDicom(inputfolder, force, patientname, patientid, encrypt=False):
             try:
                 ds = pydicom.read_file(os.path.join(root, file))
                 realPatientId = patientid
-                if (0x10, 0x20) in ds:  # If Patient ID is present
+                if encrypt and encryptIdDefine and (0x10, 0x20) in ds:  # If Patient ID is present
                   realPatientId = str(encryptId(int(ds[(0x10, 0x20)].value)))
                 anonymizeDicomFile(os.path.join(root, file), os.path.join(outputPath, root, file), patientname, realPatientId)
             except Exception as e:
