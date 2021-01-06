@@ -47,6 +47,9 @@ def faf_register_planar_image(planar, spect):
         print("Planar image dimension (" + str(spect.GetImageDimension()) + ") is not 3")
         sys.exit(1)
 
+    if not (itk.array_from_matrix(spect.GetDirection()) == np.eye(spect.GetImageDimension())).all():
+        spect = gt.applyTransformation(input=spect, force_resample=True, pad=0)
+
     projectedSpect = image_projection.image_projection(spect, 1)
     flipFilter = itk.FlipImageFilter.New(Input=projectedSpect)
     flipFilter.SetFlipAxes((False, True))

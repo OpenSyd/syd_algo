@@ -57,6 +57,9 @@ def faf_calibration(spect, acgm, injected_activity=1.0, half_life=6.0067, delta_
         print("acgm image dimension (" + str(acgm.GetImageDimension()) + ") is not 2")
         sys.exit(1)
 
+    if not (itk.array_from_matrix(spect.GetDirection()) == np.eye(spect.GetImageDimension())).all():
+        spect = gt.applyTransformation(input=spect, force_resample=True, pad=0)
+
     projectedSPECT = image_projection.image_projection(spect, 1)
     flipFilter = itk.FlipImageFilter.New(Input=projectedSPECT)
     flipFilter.SetFlipAxes((False, True))
@@ -119,5 +122,7 @@ class Test_Faf_Calibration_(unittest.TestCase):
         self.assertTrue(calibratedSpectImage.GetLargestPossibleRegion().GetSize()[1] == 16)
         self.assertTrue(calibratedSpectImage.GetLargestPossibleRegion().GetSize()[2] == 16)
         theoreticalSensitivityFaf = 6*16*16*0.33/(0.5*0.25)
+        print(theoreticalSensitivityFaf)
+        print(sensitivityFAF)
         self.assertTrue(np.allclose(sensitivityFAF, theoreticalSensitivityFaf))
         self.assertTrue(np.allclose(calibratedSpectArray[4,12], 0.33/theoreticalSensitivityFaf))
