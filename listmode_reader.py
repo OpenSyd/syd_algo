@@ -63,7 +63,7 @@ if __name__ == '__main__':
     #frame = None
     #duration_frame = 25000
     #listMode = ListModeReader("/export/home/arobert/Documents/data_spect/spect_patient/radioembo/3/ListMode/tomo.npz",
-                                  duration_frame, frame)
+#                                 duration_frame, frame)
     #listMode.read()
 
     #print(listMode.header)

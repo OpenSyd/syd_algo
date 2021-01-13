@@ -42,3 +42,4 @@ jobs:
           python -m unittest faf_ACF_image.py -v
           python -m unittest faf_ACGM_image.py -v
           python -m unittest faf_calibration.py -v
+          python -m unittest listmode2projection.py -v

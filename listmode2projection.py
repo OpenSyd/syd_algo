@@ -5,6 +5,7 @@ import itk
 import click
 import re
 import os
+import json
 from listmode_reader import ListModeReader
 
 def projection(x, y, weight, size_matrix, spacing, gate=False):
@@ -27,16 +28,8 @@ def projection(x, y, weight, size_matrix, spacing, gate=False):
     return p
 
 
-def compute_scatter_correction(primary_window, scatter_window):
-    k = 1.1
-    p_corrected = np.subtract(primary_window, k * scatter_window, out=np.zeros_like(primary_window, dtype=np.float32),
-                              where=primary_window > k * scatter_window)
-    return p_corrected
-
-
+# -----------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-
-
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option('--input', '-i', 'input_file', help='Input npz list mode file')
 @click.option('--output', '-o', 'output_name', default='projection.mhd', help='Projections')
@@ -48,25 +41,22 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--geometry', default='geom.xml', help='Save the geometry in a xml file')
 @click.option('--frame', default='all', help='Number of frame to read in the listmode file (default=\'all\')')
 @click.option('--durationframe', 'duration_frame', default='all', help='Duration of one frame in the listmode file')
-@click.option('--radionuclide', '-r', type=click.Choice(['Lu177', 'In111', 'Tc99m']), default='Tc99m')
+@click.option('--json', '-j', 'json_file',help='JSON file path containing the lower and upper limit for the principal window and for the scatter window')
 @click.option('--divideproj', 'divide_proj', default=1)
-def listmode2projectionClick(input_file, output_name, dimension, origin, spacing, output_direction, like, geometry, frame,
-                      duration_frame, radionuclide, divide_proj):
+def listmode2projectionClick(input_file, output_name, dimension, origin, spacing, output_direction, like, geometry, frame,duration_frame, json_file, divide_proj):
     """
     \b
     Compute projections from json List Mode file (input_file), and save them in mhd or mha format (output_name).
     The user can choose the number of frame to read in the json list mode file (frame) and the duration of one frame (duration_frame).
     """
-    listmode2projection(input_file, output_name, dimension, origin, spacing, output_direction, like, geometry, frame,
-                      duration_frame, radionuclide, divide_proj)
+    listmode2projection(input_file, output_name, dimension, origin, spacing, output_direction, like, geometry, frame,duration_frame,json_file, divide_proj)
 
 
-def listmode2projection(input_file, output_name, dimension, origin, spacing, output_direction, like, geometry, frame,
-                      duration_frame, radionuclide, divide_proj):
+def listmode2projection(input_file, output_name, dimension, origin, spacing, output_direction, like, geometry, frame,duration_frame, json_file, divide_proj):
     """
     \b
-    Compute projections from json List Mode file (input_file), and save them in mhd or mha format (output_name).
-    The user can choose the number of frame to read in the json list mode file (frame) and the duration of one frame (duration_frame).
+    Compute projections from npz List Mode file (input_file), and save them in mhd or mha format (output_name).
+    The user can choose the number of frame to read in the npz list mode file (frame) and the duration of one frame (duration_frame).
     """
     if frame.lower() == 'all':
         frame = None
@@ -117,21 +107,16 @@ def listmode2projection(input_file, output_name, dimension, origin, spacing, out
         dimension = list(size)[:2]
         output_direction = reader.GetOutput().GetDirection()
 
-    peak_principal_inf = 0
-    peak_principal_sup = 0
-    peak_scatter_inf = 0
-    peak_scatter_sup = 0
+    
+    with open(json_file) as j:
+        data=json.load(j)
 
-    if radionuclide == "Tc99m":
-        peak_principal_inf = 126.45
-        peak_principal_sup = 154.55
-        peak_scatter_inf = 114
-        peak_scatter_sup = 126
-    elif radionuclide == "Lu177":
-        peak_principal_inf = 192.40
-        peak_principal_sup = 223.60
-        peak_scatter_inf = 161.24
-        peak_scatter_sup = 192.36
+    for p in data:
+        peak_principal_inf = p['peak_principal_inf']
+        peak_principal_sup = p['peak_principal_sup']
+        peak_scatter_inf = p['peak_scatter_inf']
+        peak_scatter_sup = p['peak_scatter_sup']
+
 
     if divide_proj == 1:
         time_start_list = [0]
@@ -180,12 +165,7 @@ def listmode2projection(input_file, output_name, dimension, origin, spacing, out
                 p_scatter = projection(x_scatter[ind], y_scatter[ind],
                                        weight_scatter[ind], dimension, spacing, gate)
                 projection_scatter["det" + str(nb_det)].append(p_scatter)
-                #if scatter_correction:
-                #    projection_corrected["det" + str(nb_det)].append(compute_scatter_correction(p_principal, p_scatter))
-
-        #if scatter_correction:
-        #    itkimg = np.stack(projection_corrected["det1"] + projection_corrected["det2"])
-        #else:
+        
         itkimg = np.stack(projection_principal["det1"] + projection_principal["det2"] + projection_scatter["det1"] + projection_scatter["det2"])
         itkimg = itkimg * divide_proj
         itkimg = itk.GetImageFromArray(itkimg.astype(np.float32))
@@ -203,6 +183,36 @@ def listmode2projection(input_file, output_name, dimension, origin, spacing, out
             projection_path = projection_path[0] + "_" + str(cpt) + projection_path[1]
         itk.imwrite(itkimg, projection_path)
 
-
+# -----------------------------------------------------------------------------
 if __name__ == '__main__':
     listmode2projectionClick()
+
+# -----------------------------------------------------------------------------
+import unittest
+import tempfile
+import shutil
+import os
+import wget
+
+class Test_listmode2projection_(unittest.TestCase):
+    def test_listmode2projection(self):
+        print('\n')
+        tmpdirpath = tempfile.mkdtemp()
+        filenameMhd = wget.download("https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/fantome_sans_correction.mhd?inline=false", out=tmpdirpath, bar=None)
+        filenameRaw = wget.download("https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/fantome_sans_correction.raw?inline=false", out=tmpdirpath, bar=None)
+        filenameNpz = wget.download("https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/fantome.npz?inline=false", out=tmpdirpath, bar=None)
+        filenameJson = wget.download("https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/fantome.json?inline=false", out=tmpdirpath, bar=None)
+        npz = os.path.join(tmpdirpath, filenameNpz)
+        json = os.path.join(tmpdirpath, filenameJson)
+        geom = os.path.join(tmpdirpath, 'geom.xml')
+        output = os.path.join(tmpdirpath, 'projection.mhd')
+        listmode2projection(input_file=npz, output_name=output, dimension='128', origin='', spacing='4.41806', output_direction='', like='', geometry=geom, frame='all',duration_frame='25000', json_file=json, divide_proj=1)
+        mhd = itk.imread(filenameMhd)
+        mhd_array = itk.array_from_image(mhd)
+        res = itk.imread(output)
+        res_array = itk.array_from_image(res)
+        test = np.subtract(res_array,mhd_array ,out=np.zeros_like(mhd_array, dtype=np.float32))
+        self.assertTrue(os.path.isfile(geom))
+        self.assertTrue(os.path.isfile(output))
+        self.assertTrue(np.count_nonzero(test)<=4000)
+        shutil.rmtree(tmpdirpath)
