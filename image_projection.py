@@ -32,7 +32,7 @@ def image_projection_click(input, axis, mean, output):
     '''
 
     inputImage = itk.imread(input)
-    outputImage = faf_create_planar_geometrical_mean(inputImage, axis, mean)
+    outputImage = image_projection(inputImage, axis, mean)
     itk.imwrite(outputImage, output)
 
 # -----------------------------------------------------------------------------
