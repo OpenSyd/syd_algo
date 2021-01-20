@@ -15,8 +15,9 @@ jobs:
       fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8]
-        ITK_VERSION: [5.0.0, 5.0.1, pre]
 
+
+    
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -29,11 +30,8 @@ jobs:
           git clone https://github.com/OpenGATE/GateTools.git gatetools
           cd gatetools 
           pip install -e .
-          if [ ${{ matrix.ITK_VERSION }} == 'pre' ];
-          then pip install itk --pre;
-          else pip install itk==${{ matrix.ITK_VERSION }};
-          fi
           cd ..
+          pip install itk
           pip freeze
     - name: Run the tests
       run: |
