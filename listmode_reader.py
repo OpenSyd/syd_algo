@@ -56,21 +56,3 @@ class ListModeReader:
         xmlWriter.WriteFile()
 
 
-if __name__ == '__main__':
-    """
-    Example to show how to use the ListModeReader class. 
-    """
-    #frame = None
-    #duration_frame = 25000
-    #listMode = ListModeReader("/export/home/arobert/Documents/data_spect/spect_patient/radioembo/3/ListMode/tomo.npz",
-#                                 duration_frame, frame)
-    #listMode.read()
-
-    #print(listMode.header)
-
-    #print(listMode.motion_info[1])
-
-    #print(listMode.get_rtk_geometry().GetGantryAngles())
-
-    #print(listMode.data)
-    # listMode.write_xml_geometry("../data/geom.xml")
