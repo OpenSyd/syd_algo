@@ -31,8 +31,19 @@ jobs:
           cd gatetools 
           pip install -e .
           cd ..
-          pip install itk
-          pip install itk.rtk
+          pip install --upgrade pip
+          pip install scikit-build
+          pip install itk==5.1.2
+          if [ "${{ matrix.python-version }}" == "3.6" ]; then
+            wget https://nightly.link/SimonRit/RTK/workflows/build-test-package/master/LinuxWheel36.zip
+          elif [ "${{ matrix.python-version }}" == "3.7" ]; then
+            wget https://nightly.link/SimonRit/RTK/workflows/build-test-package/master/LinuxWheel37.zip
+          elif [ "${{ matrix.python-version }}" == "3.8" ]; then
+            wget https://nightly.link/SimonRit/RTK/workflows/build-test-package/master/LinuxWheel38.zip
+          fi
+          unzip Linux*.zip
+          pip install itk_rtk*.whl
+          #pip install itk.rtk
           pip freeze
     - name: Run the tests
       run: |
