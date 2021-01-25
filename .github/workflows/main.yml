@@ -26,18 +26,18 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-          pip install itk
+          pip install itk=5.1.1
           mkdir gatetools
           git clone https://github.com/OpenGATE/GateTools.git gatetools
           cd gatetools 
           pip install -e .
           cd ..
           pip install scikit-build
-          mkdir rtk
-          git clone https://github.com/SimonRit/RTK.git rtk
-          pip install rtk
-          cd ..
-          #pip install itk.rtk
+          #mkdir rtk
+          #git clone https://github.com/SimonRit/RTK.git rtk
+          #pip install rtk
+          #cd ..
+          pip install itk-rtk
           pip freeze
     - name: Run the tests
       run: |
