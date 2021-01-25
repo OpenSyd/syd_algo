@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
-from itk import RTK as rtk
+import RTK as rtk
 
 
 class ListModeReader:
