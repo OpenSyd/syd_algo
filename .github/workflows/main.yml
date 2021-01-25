@@ -35,7 +35,7 @@ jobs:
           pip install scikit-build
           mkdir rtk
           git clone https://github.com/SimonRit/RTK.git rtk
-          python -m pip install rtk
+          pip install rtk
           cd ..
           #pip install itk.rtk
           pip freeze
