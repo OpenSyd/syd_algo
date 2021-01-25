@@ -41,7 +41,7 @@ jobs:
           elif [${{ matrix.python-version }} == 3.8 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707929 ;
           fi
-          unzip linux*.zip
+          unzip Linux*.zip
           pip install *.whl
           pip freeze
     - name: Run the tests
