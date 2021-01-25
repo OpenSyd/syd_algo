@@ -31,8 +31,11 @@ jobs:
           cd gatetools 
           pip install -e .
           cd ..
-          #mkdir rtk
-          #git clone 
+          mkdir rtk
+          git clone https://github.com/SimonRit/RTK.git rtk
+          cd rtk
+          pip install -e .
+          cd ..
           #pip install itk.rtk
           pip freeze
     - name: Run the tests
