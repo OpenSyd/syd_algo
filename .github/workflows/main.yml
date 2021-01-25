@@ -41,11 +41,8 @@ jobs:
           elif [${{ matrix.python-version }} == 3.8 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707929 ;
           fi
-          #python -m pip install itk.rtk
-          mkdir rtk
-          git clone https://github.com/SimonRit/RTK.git rtk
-          pip install -e .
-          cd ..
+          unzip linux*.zip
+          pip install *.whl
           pip freeze
     - name: Run the tests
       run: |
