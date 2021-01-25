@@ -36,6 +36,7 @@ jobs:
           pip install itk==5.1.2
           if [${{ matrix.python-version }} == 3.6 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707927 ;
+            unzip LinuxWheel36.zip
           elif [${{ matrix.python-version }} == 3.7 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707928 ;
           elif [${{ matrix.python-version }} == 3.8 ]; then
