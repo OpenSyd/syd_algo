@@ -33,11 +33,10 @@ jobs:
           pip install -e .
           cd ..
           pip install scikit-build
-          #mkdir rtk
-          #git clone https://github.com/SimonRit/RTK.git rtk
-          #pip install rtk
-          #cd ..
-          python -m pip install itk-rtk
+          mkdir rtk
+          git clone https://github.com/SimonRit/RTK.git rtk
+          pip install rtk
+          cd ..
           pip freeze
     - name: Run the tests
       run: |
