@@ -26,6 +26,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+          pip install itk
           mkdir gatetools
           git clone https://github.com/OpenGATE/GateTools.git gatetools
           cd gatetools 
