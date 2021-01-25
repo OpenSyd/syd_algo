@@ -31,10 +31,6 @@ jobs:
           cd gatetools 
           pip install -e .
           cd ..
-          if [ ${{ matrix.python_version }}==3.8 ];
-          then python -m pip install scikit-buid
-          else pip install itk
-          fi
           #mkdir rtk
           #git clone 
           #pip install itk.rtk
