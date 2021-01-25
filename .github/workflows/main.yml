@@ -34,11 +34,11 @@ jobs:
           pip install --upgrade pip
           pip install scikit-build
           pip install itk==5.1.2
-          if [${{ matrix.python-version }} = 3.6 ]; then
+          if [ ${{ matrix.python-version }} == 3.6 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707927
-          elif [${{ matrix.python-version }} = 3.7 ]; then
+          elif [ ${{ matrix.python-version }} == 3.7 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707928
-          elif [${{ matrix.python-version }} = 3.8 ]; then
+          elif [ ${{ matrix.python-version }} == 3.8 ]; then
             wget https://github.com/SimonRit/RTK/suites/1878887761/artifacts/36707929
           fi
           ls
