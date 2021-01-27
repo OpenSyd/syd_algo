@@ -4,37 +4,61 @@ import numpy as np
 import click
 import itk
 
-# -----------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_options=['-h', '--help'])
 @click.command(context_settings=CONTEXT_SETTINGS)
 @click.option('--input','-i', 'input_file', help='Input mhd projection file')
 @click.option('--output','-o','output_file',help='Output mhd file with scatter corrected projection')
-@click.option('--pw','primary_window', nargs=2, type=float, help='Lower and upper limits for the primary window')
-@click.option('--sw','scatter_window', nargs=2, type=float, help='Lower and upper limits for the scatter window')
 
-def scatter_correction_dewClick(input_file, output_file, primary_window, scatter_window):
+def scatter_correction_dewClick(input_file, output_file):
     '''
     Compute the scatter correction in a cas of a double energy window for mhd projection and save the result in a mhd file. The user need to specify the energy limits for the main window and for the scatter window.
     '''
-    scatter_correction_dew(input_file, output_file, primary_window, scatter_window)
+    scatter_correction_dew(input_file, output_file)
 
-def scatter_correction_dew(input_file, output_file, primary_window, scatter_window):
-    if primary_window[0] > primary_window[1]:
-        primary_window = (primary_window[1], primary_window[0])
-    if scatter_window[0] > scatter_window[1]:
-        scatter_window = (scatter_window[1], scatter_window[0])
+def scatter_correction_dew(input_file, output_file):
 
-    projection = itk.imread(input_file)
-    np_projection = (itk.array_from_image(projection)).astype(float)
-    ind_principal = np.where((np_projection >= primary_window[0]) & (np_projection <= primary_window[1]))
-    ind_scatter = np_where((np_projection >= scatter_window[0]) & (np_projection <= scatter_window[1]))
-    p_principal = projection[ind_principal]
-    p_scatter = projection[ind_scatter]
-    k = 1.1
-    p_corrected = np.substract(p_principal, k*p_scatter, out=np.zeros_like(p_principal dtype=np.float32), where=p_principal>k*scatter_window)
-    im_corrected = itk.image_from_array(p_corrected)
-    itk.imwrite(im_corrected, output_file)
+    image = itk.imread(input_file)
+    array = (itk.array_from_image(image)).astype(float)
+    nb_energy_window = 2
+    nb_energy = 2*nb_energy_window
+    nb_angle = int(array.shape[0] /(2*nb_energy))
+
+    array_head1_energy1 = array[0:nb_angle,:,:] - 1*1*array[2*nb_angle:3*nb_angle,:,:]
+    array_head1_energy2 = array[4*nb_angle:5*nb_angle,:,:] - 1.1*array[6*nb_angle:7*nb_angle,:,:]
+    array_head2_energy1 = array[nb_angle:2*nb_angle,:,:] - 1*1*array[3*nb_angle:4*nb_angle,:,:]
+    array_head2_energy2 = array[5*nb_angle:6*nb_angle,:,:] - 1.1*array[7*nb_angle:8*nb_angle,:,:]
+
+    array_head1_energy1[array_head1_energy1 < 0] = 0
+    array_head1_energy2[array_head1_energy2 < 0] = 0
+    array_head2_energy1[array_head2_energy1 < 0] = 0
+    array_head2_energy2[array_head2_energy2 < 0] = 0
+
+    array_head1 = np.concatenate((array_head1_energy1,array_head1_energy2))
+    array_head2 = np.concatenate((array_head2_energy1,array_head2_energy2))
+    itkimg= np.stack(array_head1 + array_head2)
+    itkimg = itk.image_from_array(itkimg)
+    itk.imwrite(itkimg, output_file)
+
 
 # -----------------------------------------------------------------------------
 if __name__=='main':
     scatter_correction_dewClick()
+
+# -----------------------------------------------------------------------------
+import unittest
+import tempfile
+import shutil
+import os
+import wget
+import json
+
+class Test_scatter_correction_dew_(unittest.TestCase):
+    def test_scatter_correction_dew(self):
+        tmpdirpath = tempfile.mkdtemp()
+        filenameMhd = wget.download("https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/fantome_sans_correction.mhd?inline=false", out=tmpdirpath, bar=None)
+        filenameRaw = wget.download("https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/fantome_sans_correction.raw?inline=false", out=tmpdirpath, bar=None)
+
+        output = os.path.join(tmpdirpath, 'im_corrected.mhd')
+        scatter_correction_dew(filenameMhd, output)
