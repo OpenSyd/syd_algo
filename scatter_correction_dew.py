@@ -76,9 +76,6 @@ class Test_scatter_correction_dew_(unittest.TestCase):
         tmpdirpath = tempfile.mkdtemp()
         image = createImageExample()
         array = itk.array_from_image(image)
-        p1 = array[0][64][64]
-        p2 = array[15][64][64]
-
         output = os.path.join(tmpdirpath, 'im_corrected.mhd')
         res = scatter_correction_dew(image, 2,15,[0,2],[1,3],1.1)
         res_array = itk.array_from_image(res)
