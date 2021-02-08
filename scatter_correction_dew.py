@@ -35,8 +35,8 @@ def scatter_correction_dew(input_image,head,angles,primary_window,scatter_window
     sw2 =  scatter_window[1]
     array_res=[]
     
-    for i in range(head):
-        k = head*angles
+    for i in range(1,head+1):
+        k = i*angles
         array_energy1 = array[k*pw1:k*(pw1+1),:,:] - factor*array[sw1*k:(sw1+1)*k,:,:]
         array_energy2 = array[k*pw2:k*(pw2+1),:,:] - factor*array[k*sw2:(sw2+1)*k,:,:]
         array_energy1[array_energy1 < 0] = 0
