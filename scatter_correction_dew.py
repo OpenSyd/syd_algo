@@ -24,24 +24,39 @@ def scatter_correction_dewClick(input_image,head,angles,primary_window,scatter_w
 def scatter_correction_dew(input_image,head,angles,primary_window,scatter_window,factor):
 
     array = (itk.array_from_image(input_image)).astype(float)
-    size = angles * len(primary_window)*len(scatter_window)*head
+    size = angles * len(primary_window)*head
     if size != array.shape[0]:
         print('There is a difference beteween the calculated number of slice and the actual one')
         return []
+    ang = array.shape[0]/(head*len(primary_window))
+    if ang != angles:
+        print('There is a difference between the angles in the parameters and the estimated angles')
+        return []
 
-    pw1 = primary_window[0]
-    pw2 = primary_window[1]
-    sw1 = scatter_window[0]
-    sw2 =  scatter_window[1]
     array_res=[]
-    
-    for i in range(1,head+1):
-        k = i*angles
-        array_energy1 = array[k*pw1:k*(pw1+1),:,:] - factor*array[sw1*k:(sw1+1)*k,:,:]
-        array_energy2 = array[k*pw2:k*(pw2+1),:,:] - factor*array[k*sw2:(sw2+1)*k,:,:]
-        array_energy1[array_energy1 < 0] = 0
-        array_energy2[array_energy2 < 0] = 0
-        array_res=np.concatenate((array_energy1, array_energy2))
+    tmp=[]
+    for i in range(1,len(primary_window)+1):
+        ### tete 1 ###
+        pw0 = primary_window[i-1]*angles
+        pw1 = int((primary_window[i-1]+1/2)*angles)
+        sw0 = int(scatter_window[i-1]*angles)
+        sw1 = int((scatter_window[i-1]+1/2)*angles)
+
+        ### tete 2 ###
+        pw2 = int((primary_window[i-1]+1/2)*angles)
+        pw3 = int((primary_window[i-1]+1)*angles)
+        sw2 = int((scatter_window[i-1]+1/2)*angles)
+        sw3 = int((scatter_window[i-1]+1)*angles)
+
+        array_tete1 = array[pw0:pw1,:,:] - factor*array[sw0:sw1,:,:]
+        array_tete2 = array[pw2:pw3,:,:] - factor*array[sw2:sw3,:,:]
+        array_tete1[array_tete1 < 0] = 0
+        array_tete2[array_tete2 < 0] = 0
+        tmp.append(np.concatenate((array_tete1,array_tete2)))
+
+    array_res=np.concatenate([x for x in tmp])
+
+
 
     itkimg = itk.image_from_array(array_res)
     
@@ -77,7 +92,7 @@ class Test_scatter_correction_dew_(unittest.TestCase):
         image = createImageExample()
         array = itk.array_from_image(image)
         output = os.path.join(tmpdirpath, 'im_corrected.mhd')
-        res = scatter_correction_dew(image, 2,15,[0,2],[1,3],1.1)
+        res = scatter_correction_dew(image, 2,30,[0,2],[1,3],1.1)
         res_array = itk.array_from_image(res)
         self.assertTrue(res.shape == (60,128,128))
         self.assertTrue(res_array[0][64][64] == 0.0)
