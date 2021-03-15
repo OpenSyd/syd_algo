@@ -17,33 +17,33 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--map', 'attenuation_map', help='Attenuation map file')
 @click.option('--it', 'nb_iteration', help='Number of iterations for the OSEM algorithm')
 @click.option('--sub', 'nb_subset', help='Number of dimensions for the OSEM algorithm')
-@click.option('--proj', 'nb_projection', help='Number of projection')
 @click.option('--rotation', type=click.Choice(['GE', 'Gate', 'None']), default='None')
-@click.option('--scaling_factor','scaling_factor',help='Scaling factor for the GE attenuation map')
+@click.option('--scaling_factor','scaling_factor',default=10000,help='Scaling factor for the GE attenuation map')
 def spect_reconstruction_click(input_image, output_image, geometry_file, attenuation_map, nb_iteration,
-                               nb_subset, nb_projection, rotation,scaling_factor):
+                               nb_subset, rotation,scaling_factor):
     '''
     Compute a reconstruction using rtk OSEM algorithm
     '''
     image = itk.imread(input_image, itk.F)
     res = spect_reconstruction(image, geometry_file, attenuation_map, int(nb_iteration), int(nb_subset),
-                               int(nb_projection), rotation,float(scaling_factor))
+                                rotation,float(scaling_factor))
     itk.imwrite(res, output_image)
 
 
-def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb_subset, nb_projection,
+def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb_subset, 
                          rotation,scaling_factor):
-    att_map = itk.imread(attenuation_map, itk.F)
+    att_map = itk.imread(attenuation_map,itk.F)
     if rotation == 'GE':
         matrix = [[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
         matrix = itk.matrix_from_array(np.array(matrix))
         att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=True)
-        att_map = gt.image_divide([att_map, scaling_factor])
+        #att_map = gt.image_divide([att_map, scaling_factor])
     elif rotation == 'Gate':
         matrix = [[1.0, 0, 0, 0], [0, 0, -1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
         matrix = itk.matrix_from_array(np.array(matrix))
         att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=True)
 
+    nb_projection = itk.array_from_image(image).shape[0]
     geometryReader = rtk.ThreeDCircularProjectionGeometryXMLFileReader.New()
     geometryReader.SetFilename(geometry_file)
     geometryReader.GenerateOutputInformation()
