@@ -1,4 +1,4 @@
-#!usr/bin/env python3
+#!/usr/bin/env python3
 
 import click
 import itk
@@ -16,26 +16,26 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--geom', 'geometry_file', help='Geometry file')
 @click.option('--map', 'attenuation_map', help='Attenuation map file')
 @click.option('--it', 'nb_iteration', help='Number of iterations for the OSEM algorithm')
-@click.option('--sub', 'nb_subset_dimension', help='Number of dimensions for the OSEM algorithm')
+@click.option('--sub', 'nb_subset', help='Number of dimensions for the OSEM algorithm')
 @click.option('--proj', 'nb_projection', help='Number of projection')
 @click.option('--rotation', type=click.Choice(['GE', 'Gate', 'None']), default='None')
 @click.option('--scaling_factor','scaling_factor',help='Scaling factor for the GE attenuation map')
 def spect_reconstruction_click(input_image, output_image, geometry_file, attenuation_map, nb_iteration,
-                               nb_subset_dimension, nb_projection, rotation):
+                               nb_subset, nb_projection, rotation,scaling_factor):
     '''
     Compute a reconstruction using rtk OSEM algorithm
     '''
     image = itk.imread(input_image, itk.F)
-    res = spect_reconstruction(image, geometry_file, attenuation_map, int(nb_iteration), int(nb_subset_dimension),
-                               int(nb_projection), rotation,int(scaling_factor))
+    res = spect_reconstruction(image, geometry_file, attenuation_map, int(nb_iteration), int(nb_subset),
+                               int(nb_projection), rotation,float(scaling_factor))
     itk.imwrite(res, output_image)
 
 
-def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb_subset_dimension, nb_projection,
+def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb_subset, nb_projection,
                          rotation,scaling_factor):
     att_map = itk.imread(attenuation_map, itk.F)
     if rotation == 'GE':
-        matrix = [[1, 0, 0, 0], [0, 0, 1, 0], [0, -1, 0, 0], [0, 0, 0, 1]]
+        matrix = [[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
         matrix = itk.matrix_from_array(np.array(matrix))
         att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=True)
         att_map = gt.image_divide([att_map, scaling_factor])
@@ -63,7 +63,7 @@ def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb
     osem.SetInput(1, image)
     osem.SetInput(2, att_map)
     osem.SetNumberOfIterations(nb_iteration)
-    osem.SetNumberOfProjectionsPerSubset(int(nb_projection / nb_subset_dimension))
+    osem.SetNumberOfProjectionsPerSubset(int(nb_projection / nb_subset))
     osem.SetBackProjectionFilter(6)
     osem.SetForwardProjectionFilter(4)
     osem.SetGeometry(geometry)
