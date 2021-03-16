@@ -18,26 +18,26 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('--it', 'nb_iteration', help='Number of iterations for the OSEM algorithm')
 @click.option('--sub', 'nb_subset', help='Number of dimensions for the OSEM algorithm')
 @click.option('--rotation', type=click.Choice(['GE', 'Gate', 'None']), default='None')
-@click.option('--scaling_factor','scaling_factor',default=10000,help='Scaling factor for the GE attenuation map')
+@click.option('--scaling_factor', 'scaling_factor', default=10000, help='Scaling factor for the GE attenuation map')
 def spect_reconstruction_click(input_image, output_image, geometry_file, attenuation_map, nb_iteration,
-                               nb_subset, rotation,scaling_factor):
+                               nb_subset, rotation, scaling_factor):
     '''
     Compute a reconstruction using rtk OSEM algorithm
     '''
     image = itk.imread(input_image, itk.F)
     res = spect_reconstruction(image, geometry_file, attenuation_map, int(nb_iteration), int(nb_subset),
-                                rotation,float(scaling_factor))
+                               rotation, float(scaling_factor))
     itk.imwrite(res, output_image)
 
 
-def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb_subset, 
-                         rotation,scaling_factor):
-    att_map = itk.imread(attenuation_map,itk.F)
+def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb_subset,
+                         rotation, scaling_factor):
+    att_map = itk.imread(attenuation_map, itk.F)
     if rotation == 'GE':
         matrix = [[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
         matrix = itk.matrix_from_array(np.array(matrix))
         att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=True)
-        #att_map = gt.image_divide([att_map, scaling_factor])
+        # att_map = gt.image_divide([att_map, scaling_factor])
     elif rotation == 'Gate':
         matrix = [[1.0, 0, 0, 0], [0, 0, -1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
         matrix = itk.matrix_from_array(np.array(matrix))
@@ -70,12 +70,11 @@ def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb
     osem.Update()
     reconstruction = osem.GetOutput()
 
-    if rotation =='GE':
-        matrix_inv =[[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]
+    if rotation == 'GE':
+        matrix_inv = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]
         matrix_inv = itk.matrix_from_array(np.array(matrix_inv))
         reconstruction = gt.applyTransformation(
-                input=reconstruction,matrix=matrix_inv,force_resample=True)
-
+            input=reconstruction, matrix=matrix_inv, force_resample=True)
 
     return reconstruction
 
@@ -95,18 +94,30 @@ import wget
 class Test_spect_reconstruction_(unittest.TestCase):
     def test_spect_reconstruction(self):
         tmpdirpath = tempfile.mkdtemp()
-        filenameMhd = wget.download(
-            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/image_sans_correction.mhd?inline=false",
+        filenameImageMhd = wget.download(
+            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/image_corrected.mhd?inline=false",
             out=tmpdirpath, bar=None)
-        filenameRaw = wget.download(
-            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/image_sans_correction.raw?inline=false",
+        filenameImageRaw = wget.download(
+            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/image_corrected.raw?inline=false",
             out=tmpdirpath, bar=None)
-        image = itk.imread(filenameMhd)
-        array = itk.array_from_image(image)
-        res = spect_reconstruction(image,)
-        tmpimpath = os.path.join(tmpdirpath, 'res.mhd')
-        itk.imwrite(res, tmpimpath)
-        im = itk.imread(tmpimpath)
-        res_array = (itk.array_from_image(res)).astype(float)
+        filenameGeom = wget.download(
+            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/geom.xml?inline=false",
+            out=tmpdirpath, bar=None)
+        filenameMap = wget.download(
+            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/attenuation_map.dcm?inline=false",
+            out=tmpdirpath, bar=None)
+        filenameReconMhd = wget.download(
+            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/reconstruction.mhd?inline=false",
+            out=tmpdirpath, bar=None)
+        filenameReconRaw = wget.download(
+            "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/reconstruction.raw?inline=false",
+            out=tmpdirpath, bar=None)
+        image = itk.imread(filenameImageMhd, itk.F)
+        res = spect_reconstruction(image, filenameGeom, filenameMap, 15, 4, None, 10000)
+        init_image = itk.imread(filenameReconMhd, itk.F)
+        res_array = itk.array_from_image(res)
+        init_array = itk.array_from_image(init_image)
+        test = np.subtract(res_array, init_array, out=np.zeros_like(init_array), dtype=np.float32)
+        self.assertTrue(np.count_nonzero(test) == 0)
 
         shutil.rmtree(tmpdirpath)
