@@ -34,13 +34,13 @@ def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb
                          rotation, scaling_factor):
     att_map = itk.imread(attenuation_map, itk.F)
     if rotation == 'GE':
-        matrix = [[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
-        matrix = itk.matrix_from_array(np.array(matrix))
-        att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=True)
-        # att_map = gt.image_divide([att_map, scaling_factor])
+        matrix = np.array([[1.0, 0, 0, 0], [0, 0, 1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]], dtype=float)
+        matrix = itk.matrix_from_array(matrix)
+        att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=False)
+        att_map = gt.image_divide([att_map, scaling_factor])
     elif rotation == 'Gate':
-        matrix = [[1.0, 0, 0, 0], [0, 0, -1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]]
-        matrix = itk.matrix_from_array(np.array(matrix))
+        matrix = np.array([[1.0, 0, 0, 0], [0, 0, -1.0, 0], [0, -1.0, 0, 0], [0, 0, 0, 1.0]])
+        matrix = itk.matrix_from_array(matrix)
         att_map = gt.applyTransformation(input=att_map, matrix=matrix, force_resample=True)
 
     nb_projection = itk.array_from_image(image).shape[0]
@@ -71,8 +71,8 @@ def spect_reconstruction(image, geometry_file, attenuation_map, nb_iteration, nb
     reconstruction = osem.GetOutput()
 
     if rotation == 'GE':
-        matrix_inv = [[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]]
-        matrix_inv = itk.matrix_from_array(np.array(matrix_inv))
+        matrix_inv = np.array([[1, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]], dtype=float)
+        matrix_inv = itk.matrix_from_array(matrix_inv)
         reconstruction = gt.applyTransformation(
             input=reconstruction, matrix=matrix_inv, force_resample=True)
 
