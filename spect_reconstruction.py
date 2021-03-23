@@ -113,11 +113,17 @@ class Test_spect_reconstruction_(unittest.TestCase):
             "https://gitlab.in2p3.fr/OpenSyd/syd_tests/-/raw/master/dataTest/reconstruction.raw?inline=false",
             out=tmpdirpath, bar=None)
         image = itk.imread(filenameImageMhd, itk.F)
+        # Test reconstruction
         res = spect_reconstruction(image, filenameGeom, filenameMap, 15, 4, None, 10000)
         init_image = itk.imread(filenameReconMhd, itk.F)
         res_array = itk.array_from_image(res)
         init_array = itk.array_from_image(init_image)
         test = np.subtract(res_array, init_array, out=np.zeros_like(init_array), dtype=np.float32)
         self.assertTrue(np.count_nonzero(test) == 0)
+        # Test reconstruction with rotation
+        res = spect_reconstruction(image, filenameGeom, filenameMap,15,4, 'GE',10000)
+        res_array = itk.array_from_image(res)
+        self.assertTrue(res_array!=[])
+
 
         shutil.rmtree(tmpdirpath)
