@@ -122,6 +122,7 @@ def anonymizeDicom_click(inputfolder, force, patientname, patientid, encrypt):
 
 def anonymizeDicom(inputfolder, force, patientname, patientid, encrypt=False):
 
+    beginningFolder = os.getcwd()
     os.chdir(inputfolder)
     outputPath = os.path.join(os.getcwd(), "anonymizationOutput")
     if force and os.path.isdir(outputPath):
@@ -142,11 +143,15 @@ def anonymizeDicom(inputfolder, force, patientname, patientid, encrypt=False):
                 anonymizeDicomFile(os.path.join(root, file), os.path.join(outputPath, root, file), patientname, realPatientId)
             except Exception as e:
                 #print(e)
-                if not file.endswith(".dat") and not file.endswith(".mhd") and not file.endswith(".raw"):
+                if not file.endswith(".dat") and not file.endswith(".mhd") and not file.endswith(".raw") \
+                   and not file.endswith(".INI") and not file.endswith(".XVI") and not file.endswith(".SCAN") \
+                   and not file.endswith(".REFSCAN") and not file.endswith(".REFPATIENTORIENTATION") and not file.endswith(".REFORIENTATION") \
+                   and not file.endswith(".DELINEATION") and not file.endswith(".tar.bz2") and not file.startswith("Angle.") \
+                   and not file.endswith(".jpg") and not file.endswith(".his"):
                     print(os.path.join(inputfolder, root, file) + " is not a correct dicom file")
                 shutil.copyfile(os.path.join(root, file), os.path.join(outputPath, root, file))
 
-    os.chdir("..")
+    os.chdir(beginningFolder)
 
 if __name__ == '__main__':
     anonymizeDicom_click()
