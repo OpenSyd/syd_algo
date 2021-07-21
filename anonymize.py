@@ -12,7 +12,28 @@ except:
   encryptIdDefine = False
   print("No defined encryption key")
 
-def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
+def removeDate(ds):
+  if (0x8, 0x20) in ds:  # If Study Date is present
+    ds[(0x8, 0x20)].value = b"000000"
+  if (0x8, 0x21) in ds:  # If Series Date is present
+    ds[(0x8, 0x21)].value = b"000000"
+  if (0x8, 0x22) in ds:  # If Acquisition Date is present
+    ds[(0x8, 0x22)].value = b"000000"
+  if (0x8, 0x23) in ds:  # If Content Date is present
+    ds[(0x8, 0x23)].value = b"000000"
+  if (0x8, 0x2a) in ds:  # If Acquisition DateTime is present
+    ds[(0x8, 0x2a)].value = b"000000"
+  if (0x8, 0x30) in ds:  # If Study Time is present
+    ds[(0x8, 0x30)].value = b"000000"
+  if (0x8, 0x31) in ds:  # If Series Time is present
+    ds[(0x8, 0x31)].value = b"000000"
+  if (0x8, 0x32) in ds:  # If Acquisition Time is present
+    ds[(0x8, 0x32)].value = b"000000"
+  if (0x8, 0x33) in ds:  # If Content Time is present
+    ds[(0x8, 0x33)].value = b"000000"
+  return ds
+
+def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate):
   ds = pydicom.read_file(inputFile)
   if (0x8, 0x50) in ds:  # If Accession Number is present
     ds[(0x8, 0x50)].value = b"000000"
@@ -68,6 +89,10 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
     ds[(0xe1, 0x1061)].value = b"anonymous"
   if (0xe1, 0x1063) in ds:  # If Patient Language is present
     ds[(0xe1, 0x1063)].value = b"anonymous"
+
+  if removedate:
+    ds = removeDate(ds)
+
   ds.save_as(outputFile)
 
 
@@ -76,9 +101,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-i', '--inputfolder', default='.', help='Input folder where dicoms to anonymize are present')
 @click.option('-f', '--force', is_flag=True, help='Force to remove output folder if present')
 @click.option('-p', '--patientname', default="anonymous", help='New patient name')
+@click.option('-d', '--removedate', is_flag=True, help='Remove date too')
 @click.option('-id', '--patientid', default="000000", help='New patient id')
 @click.option('-e', '--encrypt', is_flag=True, help='Encrypt patient id')
-def anonymizeDicom_click(inputfolder, force, patientname, patientid, encrypt):
+def anonymizeDicom_click(inputfolder, force, patientname, patientid, encrypt, removedate):
     """
     \b
     :param inputfolder: Folder containing all dicom files to be anonymized
@@ -114,13 +140,23 @@ def anonymizeDicom_click(inputfolder, force, patientname, patientid, encrypt):
       (0x32, 0x1032) Requesting Physician\n
       (0xe1, 0x1061) Protocol File Name\n
       (0xe1, 0x1063) Patient Language\n
-
+    \n
+    If removedate is set, the date are also removed: \n
+      (0x8, 0x20) Study Date\n
+      (0x8, 0x21) Series Date\n
+      (0x8, 0x22) Acquisition Date\n
+      (0x8, 0x23) Content Date\n
+      (0x8, 0x2a) Acquisition DateTime\n
+      (0x8, 0x30) Study Time\n
+      (0x8, 0x31) Series Time\n
+      (0x8, 0x32) Acquisition Time\n
+      (0x8, 0x33) Content Time\n
     Encrypt option allows you to encrypt the patient id. Be sure to have encryptId function in your python path. If encrypt is set, patientid is not taken into account.
     """
 
-    anonymizeDicom(inputfolder, force, patientname, patientid, encrypt)
+    anonymizeDicom(inputfolder, force, patientname, patientid, encrypt, removedate)
 
-def anonymizeDicom(inputfolder, force, patientname, patientid, encrypt=False):
+def anonymizeDicom(inputfolder, force, patientname, patientid, encrypt=False, removedate=False):
 
     beginningFolder = os.getcwd()
     os.chdir(inputfolder)
@@ -140,7 +176,7 @@ def anonymizeDicom(inputfolder, force, patientname, patientid, encrypt=False):
                 realPatientId = patientid
                 if encrypt and encryptIdDefine and (0x10, 0x20) in ds:  # If Patient ID is present
                   realPatientId = str(encryptId(int(ds[(0x10, 0x20)].value)))
-                anonymizeDicomFile(os.path.join(root, file), os.path.join(outputPath, root, file), patientname, realPatientId)
+                anonymizeDicomFile(os.path.join(root, file), os.path.join(outputPath, root, file), patientname, realPatientId, removedate)
             except Exception as e:
                 #print(e)
                 if not file.endswith(".dat") and not file.endswith(".mhd") and not file.endswith(".raw") \
