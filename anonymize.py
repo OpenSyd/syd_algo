@@ -161,7 +161,7 @@ def anonymizeDicom_click(inputfolder, force, patientname, patientid, encrypt, re
 
     anonymizeDicom(inputfolder, force, patientname, patientid, tag, encrypt, removedate)
 
-def anonymizeDicom(inputfolder, force, patientname, patientid, tag, encrypt=False, removedate=False):
+def anonymizeDicom(inputfolder, force, patientname, patientid, tag=[], encrypt=False, removedate=False):
 
     beginningFolder = os.getcwd()
     os.chdir(inputfolder)
