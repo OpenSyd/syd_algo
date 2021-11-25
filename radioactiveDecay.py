@@ -71,7 +71,7 @@ if __name__ == '__main__':
 # -----------------------------------------------------------------------------
 import unittest
 
-class Test_Anonymize(unittest.TestCase):
-    def test_anonymize(self):
+class Test_RadioactiveDecay(unittest.TestCase):
+    def test_adioactivedecay(self):
         output = radioactiveDecay("Tc99m", 1, "10:00", "11:00", None)
         self.assertTrue(output == 0.89101352540955)
