@@ -14,6 +14,14 @@ except:
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
   ds = pydicom.read_file(inputFile)
+  if (0x8, 0x12) in ds:  # If Accession Number is present
+    ds[(0x8, 0x12)].value = b"000000"
+  if (0x8, 0x13) in ds:  # If Accession Number is present
+    ds[(0x8, 0x13)].value = b"000000"
+  if (0x8, 0x20) in ds:  # If Accession Number is present
+    ds[(0x8, 0x20)].value = b"000000"
+  if (0x8, 0x30) in ds:  # If Accession Number is present
+    ds[(0x8, 0x30)].value = b"000000"
   if (0x8, 0x50) in ds:  # If Accession Number is present
     ds[(0x8, 0x50)].value = b"000000"
   if (0x8, 0x80) in ds:  # If Institution Name is present
@@ -68,6 +76,14 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid):
     ds[(0xe1, 0x1061)].value = b"anonymous"
   if (0xe1, 0x1063) in ds:  # If Patient Language is present
     ds[(0xe1, 0x1063)].value = b"anonymous"
+  if (0x300a, 0x2) in ds: # If Requesting Physician is present
+    ds[(0x300a, 0x2)].value = b"000000"
+  if (0x300a, 0x3) in ds: # If Requesting Physician is present
+    ds[(0x300a, 0x3)].value = b"000000"
+  if (0x300a, 0x6) in ds: # If Requesting Physician is present
+    ds[(0x300a, 0x6)].value = b"000000"
+  if (0x300a, 0x7) in ds: # If Requesting Physician is present
+    ds[(0x300a, 0x7)].value = b"000000"
   ds.save_as(outputFile)
 
 
