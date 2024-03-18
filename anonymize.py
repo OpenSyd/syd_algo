@@ -34,7 +34,7 @@ def removeDate(ds):
   return ds
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, tag):
-  ds = pydicom.read_file(inputFile)
+  ds = pydicom.read_file(inputFile, force=True)
   if (0x8, 0x50) in ds:  # If Accession Number is present
     ds[(0x8, 0x50)].value = b"000000"
   if (0x8, 0x80) in ds:  # If Institution Name is present
@@ -89,6 +89,14 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
     ds[(0xe1, 0x1061)].value = b"anonymous"
   if (0xe1, 0x1063) in ds:  # If Patient Language is present
     ds[(0xe1, 0x1063)].value = b"anonymous"
+  if (0x300a, 0x0002) in ds:  # If RT Plan Label is present
+    ds[(0x300a, 0x0002)].value = b""
+  if (0x300a, 0x0003) in ds:  # If RT Plan Name is present
+    ds[(0x300a, 0x0003)].value = b""
+  if (0x300a, 0x0006) in ds:  # If RT Plan Date is present
+    ds[(0x300a, 0x0006)].value = b""
+  if (0x300a, 0x0007) in ds:  # If RT Plan Time is present
+    ds[(0x300a, 0x0007)].value = b""
 
   if removedate:
     ds = removeDate(ds)
@@ -177,13 +185,13 @@ def anonymizeDicom(inputfolder, force, patientname, patientid, tag=[], encrypt=F
             if not os.path.isdir(os.path.join(outputPath, root)):
                    os.makedirs(os.path.join(outputPath, root))
             try:
-                ds = pydicom.read_file(os.path.join(root, file))
+                ds = pydicom.read_file(os.path.join(root, file), force=True)
                 realPatientId = patientid
                 if encrypt and encryptIdDefine and (0x10, 0x20) in ds:  # If Patient ID is present
                   realPatientId = str(encryptId(int(ds[(0x10, 0x20)].value)))
                 anonymizeDicomFile(os.path.join(root, file), os.path.join(outputPath, root, file), patientname, realPatientId, removedate, tag)
             except Exception as e:
-                #print(e)
+                print(e)
                 if not file.endswith(".dat") and not file.endswith(".mhd") and not file.endswith(".raw") \
                    and not file.endswith(".INI") and not file.endswith(".XVI") and not file.endswith(".SCAN") \
                    and not file.endswith(".REFSCAN") and not file.endswith(".REFPATIENTORIENTATION") and not file.endswith(".REFORIENTATION") \
