@@ -35,6 +35,15 @@ def removeDate(ds):
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, tag):
   ds = pydicom.read_file(inputFile, force=True)
+  ds = pydicom.read_file(inputFile)
+  if (0x8, 0x12) in ds:  # If Accession Number is present
+    ds[(0x8, 0x12)].value = b"000000"
+  if (0x8, 0x13) in ds:  # If Accession Number is present
+    ds[(0x8, 0x13)].value = b"000000"
+  if (0x8, 0x20) in ds:  # If Accession Number is present
+    ds[(0x8, 0x20)].value = b"000000"
+  if (0x8, 0x30) in ds:  # If Accession Number is present
+    ds[(0x8, 0x30)].value = b"000000"
   if (0x8, 0x50) in ds:  # If Accession Number is present
     ds[(0x8, 0x50)].value = b"000000"
   if (0x8, 0x80) in ds:  # If Institution Name is present
