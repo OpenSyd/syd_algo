@@ -58,6 +58,8 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
     ds[(0x8, 0x1040)].value = b"anonymous"
   if (0x8, 0x1048) in ds:  # If Physician(s) of Record is present
     ds[(0x8, 0x1048)].value = b"anonymous"
+  if (0x8, 0x1050) in ds:  # If Performing Physician's Name is present
+    ds[(0x8, 0x1050)].value = b"anonymous"
   if (0x8, 0x1060) in ds:  # If Name of Physician(s) Reading Study is present
     ds[(0x8, 0x1060)].value = b"anonymous"
   if (0x8, 0x1070) in ds:  # If Referring Operators' Name is present
