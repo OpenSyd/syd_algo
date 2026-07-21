@@ -13,6 +13,8 @@ except:
   print("No defined encryption key")
 
 def removeDate(ds):
+  if (0x8, 0x12) in ds:  # If Instance Creation Date is present
+    ds[(0x8, 0x12)].value = b"000000"
   if (0x8, 0x20) in ds:  # If Study Date is present
     ds[(0x8, 0x20)].value = b"000000"
   if (0x8, 0x21) in ds:  # If Series Date is present
@@ -31,11 +33,19 @@ def removeDate(ds):
     ds[(0x8, 0x32)].value = b"000000"
   if (0x8, 0x33) in ds:  # If Content Time is present
     ds[(0x8, 0x33)].value = b"000000"
+  if (0x18, 0x9701) in ds:  # If Decay Correction DateTime is present
+    ds[(0x18, 0x9701)].value = b"000000"
+  if (0x54, 0x16) in ds:
+      if (0x18, 0x1078) in ds[(0x54, 0x16)][0]: #Radiopharmaceutical Start DateTime
+          ds[(0x54, 0x16)][0][(0x18, 0x1078)].value = b"000000"
+      if (0x18, 0x1079) in ds[(0x54, 0x16)][0]: #Radiopharmaceutical Stop DateTime
+          ds[(0x54, 0x16)][0][(0x18, 0x1079)].value = b"000000"
+
   return ds
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, tag):
   ds = pydicom.read_file(inputFile, force=True)
-  ds = pydicom.read_file(inputFile)
+  ds.remove_private_tags()
   if (0x8, 0x12) in ds:  # If Accession Number is present
     ds[(0x8, 0x12)].value = b"000000"
   if (0x8, 0x13) in ds:  # If Accession Number is present
@@ -46,6 +56,8 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
     ds[(0x8, 0x30)].value = b"000000"
   if (0x8, 0x50) in ds:  # If Accession Number is present
     ds[(0x8, 0x50)].value = b"000000"
+  if (0x8, 0x70) in ds:  # If Manufacturer is present
+    ds[(0x8, 0x70)].value = b"anonymous"
   if (0x8, 0x80) in ds:  # If Institution Name is present
     ds[(0x8, 0x80)].value = b"anonymous"
   if (0x8, 0x81) in ds:  # If Institution Address is present
@@ -58,10 +70,14 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
     ds[(0x8, 0x1040)].value = b"anonymous"
   if (0x8, 0x1048) in ds:  # If Physician(s) of Record is present
     ds[(0x8, 0x1048)].value = b"anonymous"
+  if (0x8, 0x1050) in ds:  # If Performing Physician Name is present
+    ds[(0x8, 0x1050)].value = b"anonymous"
   if (0x8, 0x1060) in ds:  # If Name of Physician(s) Reading Study is present
     ds[(0x8, 0x1060)].value = b"anonymous"
   if (0x8, 0x1070) in ds:  # If Referring Operators' Name is present
     ds[(0x8, 0x1070)].value = b"anonymous"
+  if (0x8, 0x1090) in ds:  # If Manufacturer's Model Name is present
+    ds[(0x8, 0x1090)].value = b"anonymous"
   if (0x9, 0x1040) in ds:  # If Patient Object Name is present
     ds[(0x9, 0x1040)].value = b"anonymous"
   if (0x9, 0x1042) in ds:  # If Patient Creation Date is present
@@ -77,11 +93,13 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
   if (0x10, 0x30) in ds:  # If Patient's Birth Date is present
     ds[(0x10, 0x30)].value = b"000000"
   if (0x10, 0x40) in ds:  # If Patient's Sex is present
-    ds[(0x10, 0x40)].value = b"U"
+    ds[(0x10, 0x40)].value = b"O"
   if (0x10, 0x1000) in ds:  # If Other Patient IDs is present
     ds[(0x10, 0x1000)].value = b"000000"
   if (0x10, 0x1001) in ds:  # If Other Patient Names is present
     ds[(0x10, 0x1001)].value = b"000000"
+  if (0x10, 0x1010) in ds:  # If Patient's Age is present
+    ds[(0x10, 0x1010)].value = b""
   if (0x10, 0x1040) in ds:  # If Patient's Address is present
     ds[(0x10, 0x1040)].value = b"anonymous"
   if (0x10, 0x2160) in ds:  # If Ethnic Group is present
@@ -90,6 +108,8 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
     ds[(0x10, 0x2180)].value = b"000000"
   if (0x18, 0x1030) in ds:  # If Protocol Name is present
     ds[(0x18, 0x1030)].value = b"000000"
+  if (0x18, 0xa001) in ds:  # If Contributing Equipment is present
+    ds[(0x18, 0xa001)].value = b""
   if (0x20, 0x10) in ds:  # If Study Id is present
     ds[(0x20, 0x10)].value = b"000000"
   if (0x32, 0x1032) in ds: # If Requesting Physician is present
@@ -99,13 +119,22 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
   if (0xe1, 0x1063) in ds:  # If Patient Language is present
     ds[(0xe1, 0x1063)].value = b"anonymous"
   if (0x300a, 0x0002) in ds:  # If RT Plan Label is present
-    ds[(0x300a, 0x0002)].value = b""
+    ds[(0x300a, 0x0002)].value = b"label"
   if (0x300a, 0x0003) in ds:  # If RT Plan Name is present
     ds[(0x300a, 0x0003)].value = b""
   if (0x300a, 0x0006) in ds:  # If RT Plan Date is present
     ds[(0x300a, 0x0006)].value = b""
   if (0x300a, 0x0007) in ds:  # If RT Plan Time is present
     ds[(0x300a, 0x0007)].value = b""
+  if (0x300a, 0x00b0) in ds:
+      if (0x08, 0x80) in ds[(0x300a, 0x00b0)][0]: #
+          ds[(0x300a, 0x00b0)][0][(0x08, 0x80)].value = b"anonymous"
+      if (0x08, 0x1040) in ds[(0x300a, 0x00b0)][0]: #
+          ds[(0x300a, 0x00b0)][0][(0x08, 0x1040)].value = b"anonymous"
+      if (0x300a, 0x00b2) in ds[(0x300a, 0x00b0)][0]: #
+          ds[(0x300a, 0x00b0)][0][(0x300a, 0x00b2)].value = b"anonymous"
+  if (0x0054, 0x0016) in ds: # If Radiopharmaceutical Information Sequence is present
+    del ds[(0x0054, 0x0016)]
 
   if removedate:
     ds = removeDate(ds)
