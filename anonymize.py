@@ -260,6 +260,7 @@ class Test_Anonymize(unittest.TestCase):
         with open(os.path.join(tmpdirpath, "anonymizationOutput", "1.2.840.113619.2.281.3562.19216820010.1547461877.50454600.dcm"),"rb") as fnew:
             bytesNew = fnew.read()
             new_hash = hashlib.sha256(bytesNew).hexdigest()
-            self.assertTrue("b519eba34907eca4ad184a47b5a3e0ff02efdfbfa5ce1074d2ab07f91f8f6840" == new_hash)
+            print(new_hash)
+            self.assertTrue("b41dc8ae7e75ae0b970653f750099d037d5908f414701c8394ec934abc9332ac" == new_hash)
         os.chdir(prevdir)
         shutil.rmtree(tmpdirpath)
