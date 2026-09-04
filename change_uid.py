@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import click
 import pydicom
@@ -24,10 +25,10 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 def change_uid_click(inputfolder):
     """
     \b
-    :param inputfolder: Folder containing all dicom files to be anonymized
+    :param inputfolder: Folder containing all dicom files to change the uid.
     :return: Dicom files with the new uid inside inputfolder/anonymizationOutput/
 
-    eg: python ~/bin/change_uid.py -i BR^^
+    eg: python ~/bin/change_uid.py -i BR
 
     change:
     (0x08, 0x18) # SOP Instance UID

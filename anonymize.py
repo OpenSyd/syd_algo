@@ -2,18 +2,46 @@
 
 import os
 import shutil
-import sys
 
 import click
 import pydicom
+from pydicom.uid import generate_uid
+
+# Global dictionary to map original UID values to new generated ones
+dict_uid = {}
+
+
+def changeUID(ds, tag):
+    """Replace the UID at *tag* with a newly generated UID if not already replaced.
+
+    The function keeps a mapping from the original UID string to the new UID so
+    that identical UID values across different DICOM files are replaced consistently.
+    """
+    # Ensure the tag exists and has a value before attempting to replace it.
+    if tag in ds and ds[tag].value:
+        original = ds[tag].value
+        # The value may be of type bytes; convert to str for dictionary key.
+        if isinstance(original, bytes):
+            original = original.decode(errors="ignore")
+        if original not in dict_uid:
+            # Generate a new UID and store the mapping.
+            dict_uid[original] = generate_uid()
+        # Set the new UID (as bytes) back on the dataset.
+        ds[tag].value = str.encode(dict_uid[original])
+    return ds
+
 
 try:
-    from encryptId import *
+    from encryptId import encryptId
 
     encryptIdDefine = True
-except:
+except ImportError:
     encryptIdDefine = False
     print("No defined encryption key")
+
+    # Fallback no-op encryptId function to keep code functional when encryption module is absent
+    def encryptId(x):
+        return x
 
 
 def removeDate(ds):
@@ -148,10 +176,15 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
         if (t[0], t[1]) in ds:
             ds[(t[0], t[1])].value = t[2]
 
+    # Change common UID tags to new generated values to avoid collisions
+    ds = changeUID(ds, (0x08, 0x18))  # SOP Instance UID
+    ds = changeUID(ds, (0x20, 0x0D))  # Study Instance UID
+    ds = changeUID(ds, (0x20, 0x0E))  # Series Instance UID
+    ds = changeUID(ds, (0x20, 0x52))  # Frame of Reference UID
     ds.save_as(outputFile)
 
 
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
@@ -180,12 +213,32 @@ def anonymizeDicom_click(
 ):
     """
     \b
-    :param inputfolder: Folder containing all dicom files to be anonymized
-    :return: Anonymized dicom inside inputfolder/anonymizationOutput/
+    Anonymize a directory of DICOM files.
 
-    eg: python ~/bin/anonymize.py -i BR -p "BR" -id 7969173 -f -d
+    Parameters\n
+    ----------\n
+    inputfolder : str\n
+        Path to the folder containing the DICOM files to be processed.\n
+    force : bool\n
+        If set, the existing ``anonymizationOutput`` folder will be removed and recreated.\n
+    patientname : str, optional\n
+        New value for the PatientName tag (default ``"anonymous"``).\n
+    patientid : str, optional\n
+        New value for the PatientID tag (default ``"000000"``).\n
+    encrypt : bool, optional\n
+        When ``True`` the patient ID is encrypted using the optional ``encryptId`` module.\n
+    removedate : bool, optional\n
+        If ``True``, all date and time tags are zeroed out.\n
+    tag : tuple(str, str, str), optional\n
+        Additional tags to overwrite; repeat ``-t`` on the command line for multiple tags.\n
 
-    The algorithm changes these tags:\n
+    The script creates an ``anonymizationOutput`` sub‑directory inside *inputfolder*
+    containing the anonymized DICOM files.
+
+    Example usage::\n
+        python anonymize.py -i ./mydicoms -p "Anonymous" -id 12345 -f -d
+
+    The algorithm changes the following standard tags (among others):\n
       (0x8, 0x50) Accession Number\n
       (0x8, 0x80) Institution Name\n
       (0x8, 0x81) Institution Address\n
@@ -213,8 +266,12 @@ def anonymizeDicom_click(
       (0x32, 0x1032) Requesting Physician\n
       (0xe1, 0x1061) Protocol File Name\n
       (0xe1, 0x1063) Patient Language\n
-    \n
-    If removedate is set, the date are also removed: \n
+      (0x08, 0x18) SOP Instance UID\n
+      (0x20, 0x0D) Study Instance UID\n
+      (0x20, 0x0E) Series Instance UID\n
+      (0x20, 0x52) Frame of Reference UID\n
+
+    If ``removedate`` is set, the following date/time tags are also zeroed out:\n
       (0x8, 0x20) Study Date\n
       (0x8, 0x21) Series Date\n
       (0x8, 0x22) Acquisition Date\n
@@ -224,15 +281,25 @@ def anonymizeDicom_click(
       (0x8, 0x31) Series Time\n
       (0x8, 0x32) Acquisition Time\n
       (0x8, 0x33) Content Time\n
-    Encrypt option allows you to encrypt the patient id. Be sure to have encryptId function in your python path. If encrypt is set, patientid is not taken into account.
+    The ``encrypt`` option encrypts the patient ID; ensure the ``encryptId``
+    function is available in your Python path. If ``encrypt`` is used, the supplied
+    ``patientid`` argument is ignored.
     """
 
     anonymizeDicom(inputfolder, force, patientname, patientid, tag, encrypt, removedate)
 
 
 def anonymizeDicom(
-    inputfolder, force, patientname, patientid, tag=[], encrypt=False, removedate=False
+    inputfolder,
+    force,
+    patientname,
+    patientid,
+    tag=None,
+    encrypt=False,
+    removedate=False,
 ):
+    if tag is None:
+        tag = []
 
     beginningFolder = os.getcwd()
     os.chdir(inputfolder)
