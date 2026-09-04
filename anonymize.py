@@ -44,15 +44,15 @@ def removeDate(ds):
   return ds
 
 def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, tag):
-  ds = pydicom.read_file(inputFile, force=True)
+  ds = pydicom.dcmread(inputFile, force=True)
   ds.remove_private_tags()
-  if (0x8, 0x12) in ds:  # If Accession Number is present
+  if (0x8, 0x12) in ds:  # If Instance Creation Date is present
     ds[(0x8, 0x12)].value = b"000000"
-  if (0x8, 0x13) in ds:  # If Accession Number is present
+  if (0x8, 0x13) in ds:  # If Instance Creation Time is present
     ds[(0x8, 0x13)].value = b"000000"
-  if (0x8, 0x20) in ds:  # If Accession Number is present
+  if (0x8, 0x20) in ds:  # If StudyDate is present
     ds[(0x8, 0x20)].value = b"000000"
-  if (0x8, 0x30) in ds:  # If Accession Number is present
+  if (0x8, 0x30) in ds:  # If StudyTime is present
     ds[(0x8, 0x30)].value = b"000000"
   if (0x8, 0x50) in ds:  # If Accession Number is present
     ds[(0x8, 0x50)].value = b"000000"
@@ -161,7 +161,7 @@ def anonymizeDicom_click(inputfolder, force, patientname, patientid, encrypt, re
     :param inputfolder: Folder containing all dicom files to be anonymized
     :return: Anonymized dicom inside inputfolder/anonymizationOutput/
 
-    eg: python ~/bin/anonymize.py -i BR^^ -p "BR^^" -id 7969173 -f
+    eg: python ~/bin/anonymize.py -i BR -p "BR" -id 7969173 -f -d
 
     The algorithm changes these tags:\n
       (0x8, 0x50) Accession Number\n
