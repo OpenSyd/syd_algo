@@ -6,6 +6,7 @@ import shutil
 import click
 import pydicom
 from pydicom.uid import generate_uid
+from tqdm import tqdm
 
 # Global dictionary to map original UID values to new generated ones
 dict_uid = {}
@@ -309,9 +310,9 @@ def anonymizeDicom(
     os.makedirs(outputPath)
     exclude = ["anonymizationOutput"]
 
-    for root, dirs, files in os.walk(".", topdown=True):
+    for root, dirs, files in tqdm(os.walk(".", topdown=True), desc="Walking"):
         dirs[:] = [d for d in dirs if d not in exclude]
-        for file in files:
+        for file in tqdm(files, desc="Files", leave=False):
             if not os.path.isdir(os.path.join(outputPath, root)):
                 os.makedirs(os.path.join(outputPath, root))
             try:
