@@ -223,7 +223,7 @@ def anonymizeDicom(inputfolder, force, patientname, patientid, tag=[], encrypt=F
             if not os.path.isdir(os.path.join(outputPath, root)):
                    os.makedirs(os.path.join(outputPath, root))
             try:
-                ds = pydicom.read_file(os.path.join(root, file), force=True)
+                ds = pydicom.dcmread(os.path.join(root, file), force=True)
                 realPatientId = patientid
                 if encrypt and encryptIdDefine and (0x10, 0x20) in ds:  # If Patient ID is present
                   realPatientId = str(encryptId(int(ds[(0x10, 0x20)].value)))
