@@ -119,7 +119,9 @@ class Test_spect_reconstruction_(unittest.TestCase):
         res_array = itk.array_from_image(res)
         init_array = itk.array_from_image(init_image)
         test = np.subtract(res_array, init_array, out=np.zeros_like(init_array), dtype=np.float32)
-        self.assertTrue(np.count_nonzero(test) == 0)
+        print("test: ")
+        print(np.count_nonzero(test))
+        self.assertTrue(np.allclose(res_array, init_array) == 0)
         # Test reconstruction with rotation
         res = spect_reconstruction(image, filenameGeom, filenameMap,15,4, 'GE',10000)
         res_array = itk.array_from_image(res)
