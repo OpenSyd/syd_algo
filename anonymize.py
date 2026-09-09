@@ -77,8 +77,13 @@ def removeDate(ds):
     return ds
 
 
-def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, tag):
+def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, onlyuid, tag):
     ds = pydicom.dcmread(inputFile, force=True)
+    if onlyuid:
+        ds = call_change_uids(ds)
+        ds.save_as(outputFile)
+        return
+
     ds.remove_private_tags()
     if (0x8, 0x12) in ds:  # If Instance Creation Date is present
         ds[(0x8, 0x12)].value = b"000000"
@@ -177,12 +182,16 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
         if (t[0], t[1]) in ds:
             ds[(t[0], t[1])].value = t[2]
 
+    ds = call_change_uids(ds)
+    ds.save_as(outputFile)
+
+def call_change_uids(ds):
     # Change common UID tags to new generated values to avoid collisions
     ds = changeUID(ds, (0x08, 0x18))  # SOP Instance UID
     ds = changeUID(ds, (0x20, 0x0D))  # Study Instance UID
     ds = changeUID(ds, (0x20, 0x0E))  # Series Instance UID
     ds = changeUID(ds, (0x20, 0x52))  # Frame of Reference UID
-    ds.save_as(outputFile)
+    return(ds)
 
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
@@ -202,6 +211,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 @click.option("-d", "--removedate", is_flag=True, help="Remove date too")
 @click.option("-id", "--patientid", default="000000", help="New patient id")
 @click.option("-e", "--encrypt", is_flag=True, help="Encrypt patient id")
+@click.option("-u", "--onlyuid", is_flag=True, help="Only change the uids")
 @click.option(
     "-t",
     "--tag",
@@ -210,7 +220,7 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
     help='Change other tags (-t "0x8" "0x1060" Lu-177 -t "0x8" "0x81" 72.3)',
 )
 def anonymizeDicom_click(
-    inputfolder, force, patientname, patientid, encrypt, removedate, tag
+    inputfolder, force, patientname, patientid, encrypt, removedate, onlyuid, tag
 ):
     """
     \b
@@ -287,7 +297,7 @@ def anonymizeDicom_click(
     ``patientid`` argument is ignored.
     """
 
-    anonymizeDicom(inputfolder, force, patientname, patientid, tag, encrypt, removedate)
+    anonymizeDicom(inputfolder, force, patientname, patientid, tag, encrypt, onlyuid, removedate)
 
 
 def anonymizeDicom(
@@ -297,6 +307,7 @@ def anonymizeDicom(
     patientid,
     tag=None,
     encrypt=False,
+    onlyuid=False,
     removedate=False,
 ):
     if tag is None:
@@ -328,6 +339,7 @@ def anonymizeDicom(
                     patientname,
                     realPatientId,
                     removedate,
+                    onlyuid,
                     tag,
                 )
             except Exception as e:
