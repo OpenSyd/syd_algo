@@ -10,6 +10,10 @@ from tqdm import tqdm
 
 # Global dictionary to map original UID values to new generated ones
 dict_uid = {}
+uid_json_filename = ".uid_table.json"
+if uid_json_filename.exists():
+    with open(uid_json_filename, "r") as f:
+        dict_uid = json.load(f)
 
 
 def changeUID(ds, tag):
@@ -369,6 +373,8 @@ def anonymizeDicom(
                 )
 
     os.chdir(beginningFolder)
+    with open(uid_json_filename, "w") as f:
+        json.dump(dict_uid, f, indent=2)
 
 
 if __name__ == "__main__":
