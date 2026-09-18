@@ -51,16 +51,12 @@ except ImportError:
 
 
 def removeDate(ds):
-    if (0x8, 0x12) in ds:  # If Instance Creation Date is present
-        ds[(0x8, 0x12)].value = b"000000"
     if (0x8, 0x20) in ds:  # If Study Date is present
         ds[(0x8, 0x20)].value = b"000000"
     if (0x8, 0x21) in ds:  # If Series Date is present
         ds[(0x8, 0x21)].value = b"000000"
     if (0x8, 0x22) in ds:  # If Acquisition Date is present
         ds[(0x8, 0x22)].value = b"000000"
-    if (0x8, 0x23) in ds:  # If Content Date is present
-        ds[(0x8, 0x23)].value = b"000000"
     if (0x8, 0x2A) in ds:  # If Acquisition DateTime is present
         ds[(0x8, 0x2A)].value = b"000000"
     if (0x8, 0x30) in ds:  # If Study Time is present
@@ -69,8 +65,6 @@ def removeDate(ds):
         ds[(0x8, 0x31)].value = b"000000"
     if (0x8, 0x32) in ds:  # If Acquisition Time is present
         ds[(0x8, 0x32)].value = b"000000"
-    if (0x8, 0x33) in ds:  # If Content Time is present
-        ds[(0x8, 0x33)].value = b"000000"
     if (0x18, 0x9701) in ds:  # If Decay Correction DateTime is present
         ds[(0x18, 0x9701)].value = b"000000"
     if (0x54, 0x16) in ds:
@@ -94,10 +88,10 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
         ds[(0x8, 0x12)].value = b"000000"
     if (0x8, 0x13) in ds:  # If Instance Creation Time is present
         ds[(0x8, 0x13)].value = b"000000"
-    if (0x8, 0x20) in ds:  # If StudyDate is present
-        ds[(0x8, 0x20)].value = b"000000"
-    if (0x8, 0x30) in ds:  # If StudyTime is present
-        ds[(0x8, 0x30)].value = b"000000"
+    if (0x8, 0x23) in ds:  # If Content Date is present
+        ds[(0x8, 0x23)].value = b"000000"
+    if (0x8, 0x33) in ds:  # If Content Time is present
+        ds[(0x8, 0x33)].value = b"000000"
     if (0x8, 0x50) in ds:  # If Accession Number is present
         ds[(0x8, 0x50)].value = b"000000"
     if (0x8, 0x70) in ds:  # If Manufacturer is present
