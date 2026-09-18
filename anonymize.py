@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import json
 import os
 import shutil
 
@@ -11,7 +12,7 @@ from tqdm import tqdm
 # Global dictionary to map original UID values to new generated ones
 dict_uid = {}
 uid_json_filename = ".uid_table.json"
-if uid_json_filename.exists():
+if os.path.isfile(uid_json_filename):
     with open(uid_json_filename, "r") as f:
         dict_uid = json.load(f)
 
