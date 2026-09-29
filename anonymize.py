@@ -144,6 +144,8 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
         ds[(0x10, 0x2160)].value = b"000000"
     if (0x10, 0x2180) in ds:  # If Occupation is present
         ds[(0x10, 0x2180)].value = b"000000"
+    if (0x18, 0x1000) in ds:  # If Device Serial Number is present
+        ds[(0x18, 0x1000)].value = b"000000"
     if (0x18, 0x1030) in ds:  # If Protocol Name is present
         ds[(0x18, 0x1030)].value = b"000000"
     if (0x18, 0xA001) in ds:  # If Contributing Equipment is present
@@ -271,6 +273,7 @@ def anonymizeDicom_click(
       (0x10, 0x1040) Patient's Address\n
       (0x10, 0x2160) Ethnic Group\n
       (0x10, 0x2180) Occupation\n
+      (0x18, 0x1000) Device Serial Number\n
       (0x18, 0x1030) Protocol Name\n
       (0x20, 0x10) Study Id\n
       (0x32, 0x1032) Requesting Physician\n
