@@ -76,7 +76,9 @@ def removeDate(ds):
     return ds
 
 
-def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate, onlyuid, tag):
+def anonymizeDicomFile(
+    inputFile, outputFile, patientname, patientid, removedate, onlyuid, tag
+):
     ds = pydicom.dcmread(inputFile, force=True)
     if onlyuid:
         ds = call_change_uids(ds)
@@ -186,13 +188,14 @@ def anonymizeDicomFile(inputFile, outputFile, patientname, patientid, removedate
     ds = call_change_uids(ds)
     ds.save_as(outputFile)
 
+
 def call_change_uids(ds):
     # Change common UID tags to new generated values to avoid collisions
     ds = changeUID(ds, (0x08, 0x18))  # SOP Instance UID
     ds = changeUID(ds, (0x20, 0x0D))  # Study Instance UID
     ds = changeUID(ds, (0x20, 0x0E))  # Series Instance UID
     ds = changeUID(ds, (0x20, 0x52))  # Frame of Reference UID
-    return(ds)
+    return ds
 
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
@@ -299,7 +302,9 @@ def anonymizeDicom_click(
     ``patientid`` argument is ignored.
     """
 
-    anonymizeDicom(inputfolder, force, patientname, patientid, tag, encrypt, onlyuid, removedate)
+    anonymizeDicom(
+        inputfolder, force, patientname, patientid, tag, encrypt, onlyuid, removedate
+    )
 
 
 def anonymizeDicom(
@@ -330,6 +335,18 @@ def anonymizeDicom(
                 os.makedirs(os.path.join(outputPath, root))
             try:
                 ds = pydicom.dcmread(os.path.join(root, file), force=True)
+                # Skip DICOM files whose SOP Class UID indicates they may retain patient information (SR, SC)
+                skip_uids = {
+                    "1.2.840.10008.5.1.4.1.1.7",
+                }
+                sop_uid = getattr(ds, "SOPClassUID", None)
+                if sop_uid is not None:
+                    # Direct match for known UIDs
+                    if sop_uid in skip_uids:
+                        continue
+                    # Prefix match for any Structured Report SOP Class UID (starts with 1.2.840.10008.5.1.4.1.1.88)
+                    if str(sop_uid).startswith("1.2.840.10008.5.1.4.1.1.88"):
+                        continue
                 realPatientId = patientid
                 if (
                     encrypt and encryptIdDefine and (0x10, 0x20) in ds
